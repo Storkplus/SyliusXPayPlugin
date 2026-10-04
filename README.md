@@ -133,6 +133,10 @@ vendor/bin/phpunit --testsuite unit
 vendor/bin/phpstan analyse -c phpstan.neon
 vendor/bin/ecs check
 APP_ENV=test vendor/bin/console lint:container
+
+# End to end (Docker): test application + MySQL + a mock XPay API sending signed webhooks.
+# Covers card payment, decline and retry, Fawry, forged webhook, refund and the admin form.
+tests/E2E/run.sh
 ```
 
 Logs go to the `xpay` Monolog channel.

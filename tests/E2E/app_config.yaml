@@ -1,0 +1,5 @@
+imports:
+    - { resource: "@StorkplusSyliusXPayPlugin/tests/TestApplication/config/config.yaml" }
+
+storkplus_sylius_xpay:
+    api_base_url: 'http://xpay-mock:8001'

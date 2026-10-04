@@ -27,7 +27,8 @@
 
         <service id="storkplus_sylius_xpay.provider.notify_payment" class="Storkplus\SyliusXPayPlugin\Provider\NotifyPaymentProvider">
             <argument type="service" id="sylius.repository.payment_request" />
-            <tag name="sylius.payment_request.payment_notify_provider" />
+            <!-- asked before catch-all providers -->
+            <tag name="sylius.payment_request.payment_notify_provider" priority="100" />
         </service>
 
         <service id="storkplus_sylius_xpay.processor.notify_payload" class="Storkplus\SyliusXPayPlugin\Processor\NotifyPayloadProcessor" decorates="sylius.processor.payment_request.notify_payload">
