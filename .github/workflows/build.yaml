@@ -1,0 +1,66 @@
+name: Build
+
+on:
+    push:
+        branches: [main]
+        paths-ignore:
+            - "*.md"
+    pull_request:
+        paths-ignore:
+            - "*.md"
+    workflow_dispatch: ~
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    tests:
+        runs-on: ubuntu-latest
+
+        name: "Sylius ${{ matrix.sylius }}, PHP ${{ matrix.php }}"
+
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - { php: "8.2", sylius: "~2.1.0" }
+                    - { php: "8.3", sylius: "~2.1.0" }
+                    - { php: "8.3", sylius: "~2.2.0" }
+                    - { php: "8.3", sylius: "~2.3.0" }
+
+        env:
+            APP_ENV: test
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: "${{ matrix.php }}"
+                  extensions: intl, gd, mbstring, pdo_mysql
+                  tools: composer:v2
+                  coverage: none
+
+            - name: Restrict Sylius version
+              run: composer require "sylius/sylius:${{ matrix.sylius }}" --no-update --no-scripts --no-interaction
+
+            - name: Install dependencies
+              run: composer update --no-interaction --no-scripts --prefer-dist
+
+            - name: Coding standard
+              run: vendor/bin/ecs check src tests/Unit
+
+            - name: Static analysis
+              run: vendor/bin/phpstan analyse -c phpstan.neon --no-progress src
+
+            - name: Unit tests
+              run: vendor/bin/phpunit --testsuite unit
+
+            - name: Container wiring
+              run: |
+                  vendor/bin/console cache:clear
+                  vendor/bin/console lint:container
+                  vendor/bin/console lint:twig templates
+                  vendor/bin/console lint:yaml config translations

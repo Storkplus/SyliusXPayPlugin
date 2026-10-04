@@ -1,0 +1,39 @@
+{% set config_form = hookable_metadata.context.form.gatewayConfig.config %}
+{% set payment_method = hookable_metadata.context.resource|default(null) %}
+{% set code = payment_method ? payment_method.code : null %}
+
+<div class="alert alert-info" role="alert" {{ sylius_test_html_attribute('xpay-webhook-instructions') }}>
+    <h4 class="alert-title">{{ 'storkplus_sylius_xpay.webhook.title'|trans }}</h4>
+    <div class="text-secondary">
+        {% if code %}
+            <p class="mb-2">{{ 'storkplus_sylius_xpay.webhook.add_endpoint'|trans }}</p>
+            <div class="input-group mb-2">
+                <input type="text" class="form-control font-monospace" readonly value="{{ url('sylius_payment_method_notify', {'code': code}) }}" {{ sylius_test_html_attribute('xpay-webhook-url') }}>
+            </div>
+        {% else %}
+            <p class="mb-2">{{ 'storkplus_sylius_xpay.webhook.save_first'|trans }}</p>
+        {% endif %}
+        <p class="mb-1">{{ 'storkplus_sylius_xpay.webhook.events'|trans }}</p>
+        <ul class="mb-2">
+            {% for event in constant('Storkplus\\SyliusXPayPlugin\\XPayGateway::HANDLED_EVENTS') %}
+                <li><code>{{ event }}</code></li>
+            {% endfor %}
+        </ul>
+        <p class="mb-0">{{ 'storkplus_sylius_xpay.webhook.secret_hint'|trans }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 col-md-6">
+        {{ form_row(config_form.secret_key, sylius_test_form_attribute('xpay-secret-key')) }}
+    </div>
+    <div class="col-12 col-md-6">
+        {{ form_row(config_form.webhook_secret, sylius_test_form_attribute('xpay-webhook-secret')) }}
+    </div>
+    <div class="col-12 col-md-6">
+        {{ form_row(config_form.locale, sylius_test_form_attribute('xpay-locale')) }}
+    </div>
+    <div class="col-12 col-md-6">
+        {{ form_row(config_form.payment_method_configuration_id, sylius_test_form_attribute('xpay-payment-method-configuration-id')) }}
+    </div>
+</div>

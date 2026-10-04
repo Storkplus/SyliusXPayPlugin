@@ -1,0 +1,7 @@
+storkplus_sylius_xpay:
+    secret_key:
+        not_blank: 'أدخل مفتاح API السري الخاص بـ XPay.'
+        invalid: 'هذا لا يبدو مفتاحًا سريًا لـ XPay (sk_test_… أو sk_live_…). لا يمكن استخدام المفاتيح العامة pk_ على الخادم.'
+    webhook_secret:
+        not_blank: 'أدخل سر توقيع الـ Webhook (whsec_…).'
+        invalid: 'سر توقيع الـ Webhook يبدأ بـ whsec_.'

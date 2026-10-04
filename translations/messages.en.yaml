@@ -1,0 +1,20 @@
+storkplus_sylius_xpay:
+    gateway_factory:
+        xpay: 'XPay (cards, Fawry, ValU)'
+    form:
+        secret_key: 'Secret API key'
+        secret_key_help: 'XPay dashboard → Developers → API keys. Use sk_test_… while testing and sk_live_… once your account is approved.'
+        webhook_secret: 'Webhook signing secret'
+        webhook_secret_help: 'Shown once when you create the webhook endpoint in XPay (starts with whsec_). Test and live endpoints have different secrets.'
+        locale: 'Checkout page language'
+        locale_auto: 'Same as the order (Arabic or English)'
+        locale_ar: 'Arabic'
+        locale_en: 'English'
+        payment_method_configuration_id: 'Payment method configuration ID (optional)'
+        payment_method_configuration_id_help: 'Restricts which methods (card, Fawry, ValU…) the checkout offers. Find it in XPay under Settings → Payment methods. Leave empty to use your default.'
+    webhook:
+        title: 'XPay webhook'
+        add_endpoint: 'In the XPay dashboard open Developers → Webhooks → Add endpoint and paste this URL:'
+        save_first: 'Save this payment method first: its webhook URL is shown here once it has a code.'
+        events: 'Subscribe it to these events:'
+        secret_hint: 'Copy the whsec_… signing secret XPay shows after saving the endpoint into "Webhook signing secret" below. Payments are confirmed by the webhook, so orders stay unpaid until it is set up.'

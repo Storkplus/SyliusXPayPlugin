@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <defaults public="false" />
+
+        <service id="storkplus_sylius_xpay.command_handler.capture" class="Storkplus\SyliusXPayPlugin\CommandHandler\CapturePaymentRequestHandler">
+            <argument type="service" id="sylius.provider.payment_request" />
+            <argument type="service" id="storkplus_sylius_xpay.client" />
+            <argument type="service" id="storkplus_sylius_xpay.provider.checkout_session_payload" />
+            <argument type="service" id="storkplus_sylius_xpay.processor.session_payment" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="logger" />
+            <tag name="monolog.logger" channel="xpay" />
+            <tag name="messenger.message_handler" bus="sylius.payment_request.command_bus" />
+        </service>
+
+        <service id="storkplus_sylius_xpay.command_handler.capture_end" class="Storkplus\SyliusXPayPlugin\CommandHandler\CaptureEndPaymentRequestHandler">
+            <argument type="service" id="sylius.provider.payment_request" />
+            <argument type="service" id="storkplus_sylius_xpay.client" />
+            <argument type="service" id="storkplus_sylius_xpay.processor.session_payment" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="logger" />
+            <tag name="monolog.logger" channel="xpay" />
+            <tag name="messenger.message_handler" bus="sylius.payment_request.command_bus" />
+        </service>
+
+        <service id="storkplus_sylius_xpay.command_handler.status" class="Storkplus\SyliusXPayPlugin\CommandHandler\StatusPaymentRequestHandler">
+            <argument type="service" id="sylius.provider.payment_request" />
+            <argument type="service" id="storkplus_sylius_xpay.client" />
+            <argument type="service" id="storkplus_sylius_xpay.processor.session_payment" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="logger" />
+            <tag name="monolog.logger" channel="xpay" />
+            <tag name="messenger.message_handler" bus="sylius.payment_request.command_bus" />
+        </service>
+
+        <service id="storkplus_sylius_xpay.command_handler.notify" class="Storkplus\SyliusXPayPlugin\CommandHandler\NotifyPaymentRequestHandler">
+            <argument type="service" id="sylius.provider.payment_request" />
+            <argument type="service" id="storkplus_sylius_xpay.processor.session_payment" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+            <tag name="messenger.message_handler" bus="sylius.payment_request.command_bus" />
+        </service>
+
+        <service id="storkplus_sylius_xpay.command_handler.refund" class="Storkplus\SyliusXPayPlugin\CommandHandler\RefundPaymentRequestHandler">
+            <argument type="service" id="sylius.provider.payment_request" />
+            <argument type="service" id="storkplus_sylius_xpay.client" />
+            <argument type="service" id="storkplus_sylius_xpay.processor.session_payment" />
+            <argument type="service" id="storkplus_sylius_xpay.converter.amount" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="logger" />
+            <tag name="monolog.logger" channel="xpay" />
+            <tag name="messenger.message_handler" bus="sylius.payment_request.command_bus" />
+        </service>
+
+        <service id="storkplus_sylius_xpay.command_handler.cancel" class="Storkplus\SyliusXPayPlugin\CommandHandler\CancelPaymentRequestHandler">
+            <argument type="service" id="sylius.provider.payment_request" />
+            <argument type="service" id="storkplus_sylius_xpay.client" />
+            <argument type="service" id="storkplus_sylius_xpay.processor.session_payment" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="logger" />
+            <tag name="monolog.logger" channel="xpay" />
+            <tag name="messenger.message_handler" bus="sylius.payment_request.command_bus" />
+        </service>
+    </services>
+</container>

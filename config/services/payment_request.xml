@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <!-- Payment request: action -> command -->
+        <service id="storkplus_sylius_xpay.command_provider" class="Storkplus\SyliusXPayPlugin\CommandProvider\XPayCommandProvider">
+            <argument type="service" id="request_stack" />
+            <tag name="sylius.payment_request.command_provider" gateway_factory="xpay" />
+        </service>
+
+        <!-- Payment request: action -> HTTP response -->
+        <service id="storkplus_sylius_xpay.provider.http_response" class="Storkplus\SyliusXPayPlugin\OrderPay\Provider\XPayHttpResponseProvider">
+            <argument type="service" id="router" />
+            <tag name="sylius.payment_request.provider.http_response" gateway_factory="xpay" />
+        </service>
+
+        <!-- Webhook: verify signature, find the payment, keep only the verified event -->
+        <service id="storkplus_sylius_xpay.event_listener.webhook_request" class="Storkplus\SyliusXPayPlugin\EventListener\WebhookRequestListener">
+            <argument type="service" id="sylius.repository.payment_method" />
+            <argument type="service" id="sylius.repository.payment_request" />
+            <argument type="service" id="storkplus_sylius_xpay.webhook.signature_verifier" />
+            <argument type="service" id="logger" />
+            <tag name="monolog.logger" channel="xpay" />
+            <!-- after the router (32), before the controller -->
+            <tag name="kernel.event_listener" event="kernel.request" priority="16" />
+        </service>
+
+        <service id="storkplus_sylius_xpay.provider.notify_payment" class="Storkplus\SyliusXPayPlugin\Provider\NotifyPaymentProvider">
+            <argument type="service" id="sylius.repository.payment_request" />
+            <tag name="sylius.payment_request.payment_notify_provider" />
+        </service>
+
+        <service id="storkplus_sylius_xpay.processor.notify_payload" class="Storkplus\SyliusXPayPlugin\Processor\NotifyPayloadProcessor" decorates="sylius.processor.payment_request.notify_payload">
+            <argument type="service" id=".inner" />
+        </service>
+
+        <!-- Admin refund / cancel -> XPay -->
+        <service id="storkplus_sylius_xpay.event_listener.payment_workflow.refund" class="Storkplus\SyliusXPayPlugin\EventListener\PaymentWorkflowListener">
+            <argument type="service" id="sylius.factory.payment_request" />
+            <argument type="service" id="sylius.repository.payment_request" />
+            <argument type="service" id="sylius.announcer.payment_request" />
+            <argument type="service" id="sylius.checker.finalized_payment_request" />
+            <argument type="constant">Sylius\Component\Payment\Model\PaymentRequestInterface::ACTION_REFUND</argument>
+            <argument type="service" id="request_stack" />
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.refund" />
+        </service>
+
+        <service id="storkplus_sylius_xpay.event_listener.payment_workflow.cancel" class="Storkplus\SyliusXPayPlugin\EventListener\PaymentWorkflowListener">
+            <argument type="service" id="sylius.factory.payment_request" />
+            <argument type="service" id="sylius.repository.payment_request" />
+            <argument type="service" id="sylius.announcer.payment_request" />
+            <argument type="service" id="sylius.checker.finalized_payment_request" />
+            <argument type="constant">Sylius\Component\Payment\Model\PaymentRequestInterface::ACTION_CANCEL</argument>
+            <argument type="service" id="request_stack" />
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.cancel" />
+        </service>
+    </services>
+</container>

@@ -1,0 +1,7 @@
+storkplus_sylius_xpay:
+    secret_key:
+        not_blank: 'Enter your XPay secret API key.'
+        invalid: 'This does not look like an XPay secret key (sk_test_… or sk_live_…). Publishable pk_ keys cannot be used on the server.'
+    webhook_secret:
+        not_blank: 'Enter the webhook signing secret (whsec_…).'
+        invalid: 'The webhook signing secret starts with whsec_.'

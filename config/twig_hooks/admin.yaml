@@ -1,0 +1,7 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_admin.payment_method.create.content.form.sections.gateway_configuration.xpay': &xpay_gateway_configuration
+            xpay_gateway_configuration:
+                template: '@StorkplusSyliusXPayPlugin/admin/payment_method/xpay_gateway_configuration.html.twig'
+                priority: 0
+        'sylius_admin.payment_method.update.content.form.sections.gateway_configuration.xpay': *xpay_gateway_configuration

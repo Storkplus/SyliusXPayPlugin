@@ -1,0 +1,4 @@
+storkplus_sylius_xpay:
+    flash:
+        refund_failed: 'The payment was marked refunded in the store, but XPay did not refund it: %reason%. Refund it from the XPay dashboard.'
+        cancel_failed: 'The XPay checkout session could not be closed: %reason%.'

@@ -1,0 +1,4 @@
+storkplus_sylius_xpay:
+    flash:
+        refund_failed: 'تم تسجيل الدفعة كمستردة في المتجر، لكن XPay لم يقم بالاسترداد: %reason%. قم بالاسترداد من لوحة تحكم XPay.'
+        cancel_failed: 'تعذّر إغلاق جلسة الدفع في XPay: %reason%.'

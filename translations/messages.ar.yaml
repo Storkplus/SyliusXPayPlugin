@@ -1,0 +1,20 @@
+storkplus_sylius_xpay:
+    gateway_factory:
+        xpay: 'XPay (بطاقات، فوري، ڤاليو)'
+    form:
+        secret_key: 'مفتاح API السري'
+        secret_key_help: 'من لوحة تحكم XPay ← المطورون ← مفاتيح API. استخدم sk_test_… أثناء التجربة و sk_live_… بعد تفعيل حسابك.'
+        webhook_secret: 'سر توقيع الـ Webhook'
+        webhook_secret_help: 'يظهر مرة واحدة عند إنشاء نقطة الـ Webhook في XPay (يبدأ بـ whsec_). لكل من وضع التجربة والوضع الحي سر مختلف.'
+        locale: 'لغة صفحة الدفع'
+        locale_auto: 'نفس لغة الطلب (عربي أو إنجليزي)'
+        locale_ar: 'العربية'
+        locale_en: 'الإنجليزية'
+        payment_method_configuration_id: 'معرّف إعدادات طرق الدفع (اختياري)'
+        payment_method_configuration_id_help: 'يحدد طرق الدفع المعروضة (بطاقة، فوري، ڤاليو…). تجده في XPay ← الإعدادات ← طرق الدفع. اتركه فارغًا لاستخدام الإعداد الافتراضي.'
+    webhook:
+        title: 'Webhook الخاص بـ XPay'
+        add_endpoint: 'في لوحة تحكم XPay افتح المطورون ← Webhooks ← إضافة نقطة، والصق هذا الرابط:'
+        save_first: 'احفظ طريقة الدفع أولًا: سيظهر رابط الـ Webhook هنا بعد أن يكون لها رمز.'
+        events: 'اشترك في هذه الأحداث:'
+        secret_hint: 'انسخ سر التوقيع whsec_… الذي يظهره XPay بعد حفظ النقطة إلى حقل "سر توقيع الـ Webhook" بالأسفل. يتم تأكيد المدفوعات عبر الـ Webhook، لذلك تبقى الطلبات غير مدفوعة حتى يتم إعداده.'

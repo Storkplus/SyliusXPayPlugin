@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="storkplus_sylius_xpay.client" class="Storkplus\SyliusXPayPlugin\Api\XPayClient">
+            <argument type="service" id="http_client" />
+            <argument>%storkplus_sylius_xpay.api_base_url%</argument>
+            <argument>%storkplus_sylius_xpay.timeout%</argument>
+            <argument type="service" id="logger" />
+            <tag name="monolog.logger" channel="xpay" />
+        </service>
+        <service id="Storkplus\SyliusXPayPlugin\Api\XPayClientInterface" alias="storkplus_sylius_xpay.client" />
+
+        <service id="storkplus_sylius_xpay.webhook.signature_verifier" class="Storkplus\SyliusXPayPlugin\Webhook\SignatureVerifier" />
+        <service id="Storkplus\SyliusXPayPlugin\Webhook\SignatureVerifierInterface" alias="storkplus_sylius_xpay.webhook.signature_verifier" />
+
+        <service id="storkplus_sylius_xpay.converter.amount" class="Storkplus\SyliusXPayPlugin\Converter\AmountConverter" />
+        <service id="Storkplus\SyliusXPayPlugin\Converter\AmountConverterInterface" alias="storkplus_sylius_xpay.converter.amount" />
+
+        <service id="storkplus_sylius_xpay.processor.session_payment" class="Storkplus\SyliusXPayPlugin\Processor\SessionPaymentProcessor">
+            <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="storkplus_sylius_xpay.converter.amount" />
+            <argument type="service" id="logger" />
+            <tag name="monolog.logger" channel="xpay" />
+        </service>
+        <service id="Storkplus\SyliusXPayPlugin\Processor\SessionPaymentProcessorInterface" alias="storkplus_sylius_xpay.processor.session_payment" />
+
+        <service id="storkplus_sylius_xpay.provider.checkout_session_payload" class="Storkplus\SyliusXPayPlugin\Provider\CheckoutSessionPayloadProvider">
+            <argument type="service" id="sylius_shop.provider.order_pay.payment_request_pay_url" />
+            <argument type="service" id="storkplus_sylius_xpay.converter.amount" />
+        </service>
+        <service id="Storkplus\SyliusXPayPlugin\Provider\CheckoutSessionPayloadProviderInterface" alias="storkplus_sylius_xpay.provider.checkout_session_payload" />
+
+        <service id="storkplus_sylius_xpay.form.type.gateway_configuration" class="Storkplus\SyliusXPayPlugin\Form\Type\XPayGatewayConfigurationType">
+            <tag name="sylius.gateway_configuration_type" type="xpay" label="storkplus_sylius_xpay.gateway_factory.xpay" />
+            <tag name="form.type" />
+        </service>
+
+        <service id="storkplus_sylius_xpay.console.webhook" class="Storkplus\SyliusXPayPlugin\Console\WebhookCommand">
+            <argument type="service" id="sylius.repository.payment_method" />
+            <argument type="service" id="storkplus_sylius_xpay.client" />
+            <argument type="service" id="router" />
+            <argument type="service" id="doctrine.orm.entity_manager" />
+            <tag name="console.command" />
+        </service>
+    </services>
+</container>
