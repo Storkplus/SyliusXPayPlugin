@@ -1,1 +1,2 @@
-# The plugin only uses Sylius core routes (pay / after-pay / payment-methods notify).
+storkplus_sylius_xpay:
+    resource: "@StorkplusSyliusXPayPlugin/config/routes.yaml"

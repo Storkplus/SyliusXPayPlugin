@@ -21,6 +21,7 @@
             <argument type="service" id="sylius_abstraction.state_machine" />
             <argument type="service" id="storkplus_sylius_xpay.converter.amount" />
             <argument type="service" id="logger" />
+            <argument type="service" id="doctrine.orm.entity_manager" />
             <tag name="monolog.logger" channel="xpay" />
         </service>
         <service id="Storkplus\SyliusXPayPlugin\Processor\SessionPaymentProcessorInterface" alias="storkplus_sylius_xpay.processor.session_payment" />

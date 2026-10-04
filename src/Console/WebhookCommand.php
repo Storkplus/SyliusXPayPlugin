@@ -82,8 +82,8 @@ final class WebhookCommand extends Command
 
         /** @var string|null $baseUrl */
         $baseUrl = $input->getOption('base-url');
-        $path = $this->router->generate('sylius_payment_method_notify', ['code' => $code], UrlGeneratorInterface::ABSOLUTE_PATH);
-        $url = null !== $baseUrl ? rtrim($baseUrl, '/') . $path : $this->router->generate('sylius_payment_method_notify', ['code' => $code], UrlGeneratorInterface::ABSOLUTE_URL);
+        $path = $this->router->generate('storkplus_sylius_xpay_webhook', [], UrlGeneratorInterface::ABSOLUTE_PATH);
+        $url = null !== $baseUrl ? rtrim($baseUrl, '/') . $path : $this->router->generate('storkplus_sylius_xpay_webhook', [], UrlGeneratorInterface::ABSOLUTE_URL);
         $io->writeln(sprintf('Webhook URL: <info>%s</info>', $url));
 
         if (!$input->getOption('register')) {

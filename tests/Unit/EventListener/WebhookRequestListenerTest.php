@@ -7,6 +7,7 @@ namespace Tests\Storkplus\SyliusXPayPlugin\Unit\EventListener;
 use PHPUnit\Framework\TestCase;
 use Storkplus\SyliusXPayPlugin\EventListener\WebhookRequestListener;
 use Storkplus\SyliusXPayPlugin\Webhook\SignatureVerifier;
+use Storkplus\SyliusXPayPlugin\Webhook\WebhookGuard;
 use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentMethod;
 use Sylius\Component\Payment\Model\GatewayConfig;
@@ -106,7 +107,7 @@ final class WebhookRequestListenerTest extends TestCase
         $requests->method('find')->willReturnCallback(fn (string $hash) => self::HASH === $hash ? $this->paymentRequest : null);
 
         $event = new RequestEvent($this->createMock(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST);
-        (new WebhookRequestListener($methods, $requests, new SignatureVerifier()))($event);
+        (new WebhookRequestListener($methods, new WebhookGuard($requests, new SignatureVerifier())))($event);
 
         return $event;
     }

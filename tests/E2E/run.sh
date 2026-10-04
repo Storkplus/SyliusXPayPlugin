@@ -21,7 +21,7 @@ app() { docker run --rm --network $NET -u "$(id -u):$(id -g)" "${VOLS[@]}" "${EN
 
 docker network create $NET >/dev/null 2>&1 || true
 docker run -d --name xpay-e2e-db --network $NET -e MYSQL_ROOT_PASSWORD=root mysql:8.4 >/dev/null
-docker run -d --name xpay-mock --network $NET -v "$E2E:/e2e" -w /e2e --entrypoint php $IMG -S 0.0.0.0:8001 mock_xpay.php >/dev/null
+docker run -d --name xpay-mock --network $NET -v "$E2E:/e2e" -e PHP_CLI_SERVER_WORKERS=4 -w /e2e --entrypoint php $IMG -S 0.0.0.0:8001 mock_xpay.php >/dev/null
 until docker exec xpay-e2e-db mysqladmin -uroot -proot ping 2>/dev/null | grep -q alive; do sleep 2; done
 
 # The shop pages only need the Encore entrypoint files to exist.
@@ -34,11 +34,12 @@ done
 app 'vendor/bin/console cache:clear -q; vendor/bin/console doctrine:database:create -n -q; vendor/bin/console doctrine:migrations:migrate -n -q;
      vendor/bin/console sylius:fixtures:load default -n -q; [ -f vendor/sylius/test-application/config/encryption/key ] || vendor/bin/console sylius:payment:generate-key -q;
      php /e2e/setup.php'
-docker run -d --name xpay-app --network $NET -u "$(id -u):$(id -g)" "${VOLS[@]}" "${ENVS[@]}" -w /app/vendor/sylius/test-application/public \
+docker run -d --name xpay-app --network $NET -e PHP_CLI_SERVER_WORKERS=4 -u "$(id -u):$(id -g)" "${VOLS[@]}" "${ENVS[@]}" -w /app/vendor/sylius/test-application/public \
     --entrypoint php $IMG -d variables_order=EGPCS -S 0.0.0.0:8000 index.php >/dev/null
 sleep 2
 
 drive() { rm -f "$E2E/mock_state.json"; docker run --rm --network $NET -v "$E2E:/e2e" --entrypoint php $IMG /e2e/drive.php "$1"; }
-for scenario in card decline fawry forged; do drive $scenario; done
+for scenario in ${SCENARIOS:-card race decline fawry forged}; do drive $scenario; done
+[[ -n "${SCENARIOS:-}" ]] && exit 0
 app 'php /e2e/refund.php'
 docker run --rm --network $NET -v "$E2E:/e2e" --entrypoint php $IMG /e2e/admin.php

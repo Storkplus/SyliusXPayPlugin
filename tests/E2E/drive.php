@@ -32,7 +32,8 @@ function check(bool $ok, string $what) { echo ($ok ? "  ✔ " : "  ✘ ") . $wha
 "; exit(1); } }
 function path(string $url): string { $p = parse_url($url); return ($p['path'] ?? '') . (isset($p['query']) ? '?' . $p['query'] : ''); }
 
-mock('/_mock/config', ['webhook_url' => APP . '/payment-methods/xpay']);
+// The static per-shop endpoint; the card scenario uses the per-method /payment-methods/{code} one.
+mock('/_mock/config', ['webhook_url' => APP . ($scenario === 'card' ? '/payment-methods/xpay' : '/payment/xpay/webhook')]);
 
 // --- checkout via Shop API
 $variant = db("SELECT code FROM sylius_product_variant WHERE enabled = 1 ORDER BY id LIMIT 1")[0]['code'];
@@ -92,6 +93,16 @@ if ($scenario === 'card') {
     step("customer returns -> {$r['code']} " . path((string) $r['location']));
     $r = req('GET', $r['location']);
     step("after-pay -> {$r['code']} " . path((string) $r['location']));
+    check(str_contains((string) $r['location'], 'thank-you'), 'customer lands on thank-you page');
+}
+if ($scenario === 'race') {
+    mock("/_mock/race/$sessionId");
+    $r = req('GET', $payUrl);
+    step("customer returns while the webhook lands -> {$r['code']} " . path((string) $r['location']));
+    check($r['code'] === 302, 'return does not error (no optimistic lock failure)');
+    check(in_array('WEBHOOK checkout.session.completed -> 204', mock('/_mock/state')['log'], true), 'webhook landed during the return');
+    check($payState()['state'] === 'completed' && $orderState() === 'paid', 'order paid exactly once');
+    $r = req('GET', $r['location']);
     check(str_contains((string) $r['location'], 'thank-you'), 'customer lands on thank-you page');
 }
 if ($scenario === 'decline') {

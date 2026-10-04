@@ -155,6 +155,39 @@ final class SessionPaymentProcessorTest extends TestCase
         self::assertArrayNotHasKey('payment_intent_id', $payment->getDetails()['xpay']);
     }
 
+    public function test_it_locks_the_order_and_rereads_the_payment_before_deciding(): void
+    {
+        $payment = $this->payment();
+        $order = new \Sylius\Component\Core\Model\Order();
+        $order->addPayment($payment);
+        (new \ReflectionProperty(Payment::class, 'id'))->setValue($payment, 7);
+
+        $connection = $this->createMock(\Doctrine\DBAL\Connection::class);
+        $connection->method('isTransactionActive')->willReturn(true);
+
+        $entityManager = $this->createMock(\Doctrine\ORM\EntityManagerInterface::class);
+        $entityManager->method('getConnection')->willReturn($connection);
+        $entityManager->method('contains')->willReturn(true);
+        $entityManager->expects(self::exactly(2))->method('refresh')->willReturnCallback(
+            static function (object $entity, $lockMode = null) use ($order, $payment): void {
+                if ($entity === $order) {
+                    self::assertSame(\Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE, $lockMode);
+
+                    return;
+                }
+                // The webhook completed it meanwhile.
+                self::assertSame($payment, $entity);
+                $payment->setState(PaymentInterface::STATE_COMPLETED);
+            },
+        );
+
+        $processor = new SessionPaymentProcessor($this->stateMachine, new AmountConverter(), entityManager: $entityManager);
+        $result = $processor->process($payment, $this->session(['paymentStatus' => 'paid', 'status' => 'complete']));
+
+        self::assertSame(SessionPaymentProcessorInterface::RESULT_COMPLETED, $result);
+        self::assertSame([], $this->stateMachine->applied, 'the paid transition must not run twice');
+    }
+
     public function test_kwd_amounts_are_compared_in_three_decimal_minor_units(): void
     {
         $payment = $this->payment(currency: 'KWD', amount: 1500);

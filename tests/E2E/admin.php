@@ -10,7 +10,7 @@ if (preg_match('/name="(_csrf[^"]*)" value="([^"]+)"/', $b, $mm)) { $fields[$mm[
 echo "login -> $c $loc\n";
 [$c, $b] = req('GET', '/admin/payment-methods/new/xpay');
 echo "create form -> $c\n";
-foreach (['XPay webhook', 'Save this payment method first', 'secret_key', 'webhook_secret', 'payment_method_configuration_id', 'checkout.session.async_payment_succeeded'] as $needle) { echo (str_contains($b, $needle) ? '  ✔ ' : '  ✘ '), $needle, "\n"; }
+foreach (['XPay webhook', 'http://localhost/payment/xpay/webhook', 'secret_key', 'webhook_secret', 'payment_method_configuration_id', 'checkout.session.async_payment_succeeded'] as $needle) { echo (str_contains($b, $needle) ? '  ✔ ' : '  ✘ '), $needle, "\n"; }
 preg_match('/<title>([^<]+)/', $b, $t); if ($c >= 400) { echo substr($t[1] ?? '', 0, 300), "\n"; }
 // gateway factory listed in the "create" dropdown
 [$c, $b] = req('GET', '/admin/payment-methods/');
@@ -18,7 +18,7 @@ echo (str_contains($b, 'payment-methods/new/xpay') ? '  ✔ ' : '  ✘ '), "XPay
 // edit page with code -> webhook URL
 [$c, $b] = req('GET', '/admin/payment-methods/3/edit');
 echo "edit form -> $c\n";
-echo (str_contains($b, 'http://localhost/payment-methods/xpay') ? '  ✔ ' : '  ✘ '), "webhook URL shown\n";
+echo (str_contains($b, 'http://localhost/payment/xpay/webhook') ? '  ✔ ' : '  ✘ '), "static webhook URL shown on edit\n";
 // validation: submit edit with a publishable key
 preg_match_all('/name="(sylius_admin_payment_method\[[^"]+)"[^>]*?(?:value="([^"]*)")?/', $b, $all, PREG_SET_ORDER);
 $form = []; foreach ($all as $f) { $form[$f[1]] = html_entity_decode($f[2] ?? ''); }

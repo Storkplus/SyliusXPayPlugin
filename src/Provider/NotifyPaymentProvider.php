@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Storkplus\SyliusXPayPlugin\Provider;
 
-use Storkplus\SyliusXPayPlugin\EventListener\WebhookRequestListener;
+use Storkplus\SyliusXPayPlugin\Webhook\WebhookGuard;
 use Storkplus\SyliusXPayPlugin\XPayGateway;
 use Sylius\Bundle\PaymentBundle\Provider\NotifyPaymentProviderInterface;
 use Sylius\Component\Payment\Model\PaymentInterface;
@@ -42,7 +42,7 @@ final class NotifyPaymentProvider implements NotifyPaymentProviderInterface
             throw new BadRequestHttpException('Unverified XPay webhook.');
         }
 
-        $hash = WebhookRequestListener::sessionMetadata($event)[XPayGateway::METADATA_PAYMENT_REQUEST_HASH] ?? null;
+        $hash = WebhookGuard::sessionMetadata($event)[XPayGateway::METADATA_PAYMENT_REQUEST_HASH] ?? null;
         if (!is_string($hash) || '' === $hash) {
             throw new NotFoundHttpException('The XPay session carries no Sylius payment request reference.');
         }

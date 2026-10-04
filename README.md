@@ -44,8 +44,15 @@ imports:
 #     timeout: 20
 ```
 
-No routes and no database migrations are needed: the plugin uses the Sylius payment routes
-(`/pay/{hash}`, `/after-pay/{hash}`, `/payment-methods/{code}`) and stores what it needs in the payment details.
+Import its route (the static webhook endpoint) in `config/routes/storkplus_sylius_xpay.yaml`:
+
+```yaml
+storkplus_sylius_xpay:
+    resource: "@StorkplusSyliusXPayPlugin/config/routes.yaml"
+```
+
+No database migrations are needed: payments go through the Sylius routes (`/pay/{hash}`, `/after-pay/{hash}`)
+and the plugin stores what it needs in the payment details.
 
 Clear the cache. The payment request messenger transport must stay synchronous (the Sylius default,
 `SYLIUS_MESSENGER_TRANSPORT_PAYMENT_REQUEST_DSN=sync://`) so the customer is redirected in the same request.
@@ -54,14 +61,18 @@ Clear the cache. The payment request messenger transport must stay synchronous (
 
 1. In XPay, open **Developers → API keys** and copy a secret key (`sk_test_…` while testing).
 2. In Sylius admin, **Configuration → Payment methods → Create → XPay (cards, Fawry, ValU)**.
-   Fill in the code (e.g. `xpay`), the channels, a name, and the secret key. Save.
-3. Edit the method again: the form now shows the webhook URL, `https://<your-shop>/payment-methods/<code>`.
+   The form shows the shop's webhook URL, `https://<your-shop>/payment/xpay/webhook`. It is fixed per shop
+   (it does not depend on the method code), so it can be registered right away.
+3. Fill in the code, channels, name and secret key.
 4. In XPay, open **Developers → Webhooks → Add endpoint**, paste the URL and subscribe to:
    - `checkout.session.completed`
    - `checkout.session.async_payment_succeeded`
    - `checkout.session.async_payment_failed`
    - `checkout.session.expired`
 5. Copy the `whsec_…` signing secret XPay shows once, paste it into **Webhook signing secret**, save.
+
+When a shop has several XPay methods (e.g. test and live), each event is matched to the method whose signing
+secret verifies it. The per-method Sylius endpoint `/payment-methods/{code}` keeps working as well.
 
 Test and live mode are separate in XPay: switching to live means a `sk_live_…` key **and** a new live
 webhook endpoint with its own `whsec_…` secret.
@@ -89,7 +100,7 @@ Sylius checkout complete
        └─ POST /checkout/sessions   Idempotency-Key = payment request hash
        └─ 303 → checkout.xpay.app/c/cs_…
 customer pays (3-D Secure / Fawry reference / ValU)
-  ├─ webhook  POST /payment-methods/{code}   (signature verified first)
+  ├─ webhook  POST /payment/xpay/webhook     (signature verified first, then the Sylius notify flow)
   │     checkout.session.completed / async_payment_* / expired → payment state
   └─ redirect /pay/{hash}?xpay_return=success|cancel
         └─ GET /checkout/sessions/{id} → payment state
@@ -115,6 +126,8 @@ Safety rules:
   (Payment Links, another shop on the same account) and for other event types are acknowledged with
   `204` and ignored, so they never cause retries or failed-delivery emails.
 - Invalid signatures get `400`.
+- The webhook and the customer's return can arrive together; the order row is locked (`SELECT … FOR UPDATE`)
+  and re-read before any state change, so the second one is a no-op instead of a duplicate "paid" event.
 
 Amounts: Sylius stores two implied decimals for every currency; for KWD, BHD, JOD, OMR and LYD the plugin
 converts to XPay's three-decimal minor unit.

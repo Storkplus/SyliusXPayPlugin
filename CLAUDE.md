@@ -26,9 +26,11 @@ docker run --rm -u $(id -u):$(id -g) -v $PWD:/app -w /app --entrypoint sh ghcr.i
   `/pay/{hash}`; `?xpay_return=` tells a return from XPay apart from re-entering the payment).
 - `Processor/SessionPaymentProcessor` — the single place mapping a Checkout Session onto the `sylius_payment`
   graph. Idempotent, never downgrades, ignores sessions not bound to the payment, refuses amount mismatches.
-- `EventListener/WebhookRequestListener` — `kernel.request` guard on `sylius_payment_method_notify`: signature,
-  event filtering (204), stores the verified event in a request attribute. `NotifyPayloadProcessor` +
-  `NotifyPaymentProvider` plug that into the standard Sylius notify action.
+- `Webhook/WebhookGuard` — signature (tries every XPay method's whsec_), event filtering (204), stores the verified
+  event in a request attribute. Used by `Controller/WebhookAction` (static `/payment/xpay/webhook`, forwards to the
+  Sylius notify action) and `EventListener/WebhookRequestListener` (per-method `/payment-methods/{code}`).
+  `NotifyPayloadProcessor` + `NotifyPaymentProvider` plug the event into the standard notify flow.
+- `SessionPaymentProcessor` locks the order row and refreshes before deciding: webhook and return race.
 - `EventListener/PaymentWorkflowListener` — payment `refund` / `cancel` transitions → refund / cancel requests.
 - `OrderPay/Provider/XPayHttpResponseProvider` — first argument typed `mixed`: it is `RequestConfiguration`
   up to Sylius 2.2 and `Request` from 2.3.

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Storkplus\SyliusXPayPlugin\Processor;
 
+use Doctrine\DBAL\LockMode;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Storkplus\SyliusXPayPlugin\Converter\AmountConverterInterface;
@@ -18,11 +20,14 @@ final class SessionPaymentProcessor implements SessionPaymentProcessorInterface
         private readonly StateMachineInterface $stateMachine,
         private readonly AmountConverterInterface $amountConverter,
         private readonly LoggerInterface $logger = new NullLogger(),
+        private readonly ?EntityManagerInterface $entityManager = null,
     ) {
     }
 
     public function process(PaymentInterface $payment, array $session, ?string $eventType = null): string
     {
+        $this->lockAndRefresh($payment);
+
         $sessionId = is_string($session['id'] ?? null) ? $session['id'] : null;
         $boundSessionId = $this->getSnapshot($payment)['session_id'] ?? null;
 
@@ -180,6 +185,30 @@ final class SessionPaymentProcessor implements SessionPaymentProcessorInterface
     {
         if ($this->stateMachine->can($payment, PaymentTransitions::GRAPH, $transition)) {
             $this->stateMachine->apply($payment, PaymentTransitions::GRAPH, $transition);
+        }
+    }
+
+    /**
+     * The webhook and the customer's return can be processed at the same time. Each
+     * loads the payment and order before calling XPay, so the later one would act on
+     * stale rows: apply "complete" a second time (duplicate paid events) and flush an
+     * order whose version moved on (OptimisticLockException -> HTTP 500). Locking the
+     * order row and re-reading both serialises the two paths; the second one then sees
+     * the final state and does nothing.
+     */
+    private function lockAndRefresh(PaymentInterface $payment): void
+    {
+        if (null === $this->entityManager || null === $payment->getId() || !$this->entityManager->getConnection()->isTransactionActive()) {
+            return;
+        }
+
+        $order = $payment->getOrder();
+        if (null !== $order && $this->entityManager->contains($order)) {
+            $this->entityManager->refresh($order, LockMode::PESSIMISTIC_WRITE);
+        }
+
+        if ($this->entityManager->contains($payment)) {
+            $this->entityManager->refresh($payment);
         }
     }
 }

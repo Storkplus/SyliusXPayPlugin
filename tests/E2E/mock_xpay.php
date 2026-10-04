@@ -37,6 +37,12 @@ if (str_starts_with($path, '/_mock/')) {
         $w = $send('checkout.session.completed', $s);
         $json(200, ['webhook' => $w, 'session' => $s]);
     }
+    if ($parts[1] === 'race') { // paid; webhook is delivered while the shop is reading the session on return
+        $s['status'] = 'complete'; $s['paymentStatus'] = 'paid';
+        $s['paymentIntent'] = ['id' => 'pi_test_' . substr($id, 8), 'status' => 'SUCCEEDED'];
+        $s['race'] = true;
+        $json(200, ['session' => $s]);
+    }
     if ($parts[1] === 'decline') { // card declined, customer bounced to cancelUrl
         $s['paymentIntent'] = ['id' => 'pi_test_' . substr($id, 8), 'status' => 'PAYMENT_FAILED', 'lastPaymentError' => ['code' => 'card_declined', 'message' => 'Declined']];
         $json(200, ['session' => $s]);
@@ -76,6 +82,11 @@ if ($method === 'POST' && $path === '/checkout/sessions') {
     $json(200, $session);
 }
 if ($method === 'GET' && preg_match('#^/checkout/sessions/([\w]+)$#', $path, $m)) {
+    if (!empty($state['sessions'][$m[1]]['race'])) {
+        unset($state['sessions'][$m[1]]['race']);
+        $save();
+        $send('checkout.session.completed', $state['sessions'][$m[1]]);
+    }
     isset($state['sessions'][$m[1]]) ? $json(200, $state['sessions'][$m[1]]) : $json(404, ['error' => ['type' => 'invalid_request_error', 'code' => 'resource_missing', 'message' => 'No such session']]);
 }
 if ($method === 'POST' && preg_match('#^/checkout/sessions/([\w]+)/expire$#', $path, $m)) {

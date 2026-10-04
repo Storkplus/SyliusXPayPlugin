@@ -1,0 +1,5 @@
+storkplus_sylius_xpay_webhook:
+    path: /payment/xpay/webhook
+    methods: [GET, POST]
+    defaults:
+        _controller: storkplus_sylius_xpay.controller.webhook

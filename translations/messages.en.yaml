@@ -14,7 +14,6 @@ storkplus_sylius_xpay:
         payment_method_configuration_id_help: 'Restricts which methods (card, Fawry, ValU…) the checkout offers. Find it in XPay under Settings → Payment methods. Leave empty to use your default.'
     webhook:
         title: 'XPay webhook'
-        add_endpoint: 'In the XPay dashboard open Developers → Webhooks → Add endpoint and paste this URL:'
-        save_first: 'Save this payment method first: its webhook URL is shown here once it has a code.'
+        add_endpoint: 'In the XPay dashboard open Developers → Webhooks → Add endpoint and paste this URL. It is fixed for this store, so you can add it now, before saving:'
         events: 'Subscribe it to these events:'
         secret_hint: 'Copy the whsec_… signing secret XPay shows after saving the endpoint into "Webhook signing secret" below. Payments are confirmed by the webhook, so orders stay unpaid until it is set up.'

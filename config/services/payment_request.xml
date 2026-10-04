@@ -14,15 +14,26 @@
             <tag name="sylius.payment_request.provider.http_response" gateway_factory="xpay" />
         </service>
 
-        <!-- Webhook: verify signature, find the payment, keep only the verified event -->
-        <service id="storkplus_sylius_xpay.event_listener.webhook_request" class="Storkplus\SyliusXPayPlugin\EventListener\WebhookRequestListener">
-            <argument type="service" id="sylius.repository.payment_method" />
+        <!-- Webhook: verify signature, keep only events about our sessions -->
+        <service id="storkplus_sylius_xpay.webhook.guard" class="Storkplus\SyliusXPayPlugin\Webhook\WebhookGuard">
             <argument type="service" id="sylius.repository.payment_request" />
             <argument type="service" id="storkplus_sylius_xpay.webhook.signature_verifier" />
             <argument type="service" id="logger" />
             <tag name="monolog.logger" channel="xpay" />
+        </service>
+
+        <service id="storkplus_sylius_xpay.event_listener.webhook_request" class="Storkplus\SyliusXPayPlugin\EventListener\WebhookRequestListener">
+            <argument type="service" id="sylius.repository.payment_method" />
+            <argument type="service" id="storkplus_sylius_xpay.webhook.guard" />
             <!-- after the router (32), before the controller -->
             <tag name="kernel.event_listener" event="kernel.request" priority="16" />
+        </service>
+
+        <service id="storkplus_sylius_xpay.controller.webhook" class="Storkplus\SyliusXPayPlugin\Controller\WebhookAction" public="true">
+            <argument type="service" id="sylius.repository.payment_method" />
+            <argument type="service" id="storkplus_sylius_xpay.webhook.guard" />
+            <argument type="service" id="sylius.controller.payment_method_notify" />
+            <tag name="controller.service_arguments" />
         </service>
 
         <service id="storkplus_sylius_xpay.provider.notify_payment" class="Storkplus\SyliusXPayPlugin\Provider\NotifyPaymentProvider">
